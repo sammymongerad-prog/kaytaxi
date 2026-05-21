@@ -1,0 +1,2306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>KayTaxi</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+/* ═══════════════════════════════════════════
+   KAYTAXI MVP — Design System
+═══════════════════════════════════════════ */
+:root{
+  --bg:#0e0c09;
+  --bg2:#181410;
+  --bg3:#221e18;
+  --surface:#2a2420;
+  --surface2:#332e27;
+  --border:rgba(255,255,255,0.08);
+  --border2:rgba(255,255,255,0.14);
+  --orange:#ff7733;
+  --orange-dark:#cc5a20;
+  --orange-glow:rgba(255,119,51,0.18);
+  --yellow:#ffd23f;
+  --yellow-dark:#cc9f00;
+  --green:#22c55e;
+  --green-dark:#16a34a;
+  --red:#ef4444;
+  --blue:#3b82f6;
+  --text:#f0ede8;
+  --text2:#a09890;
+  --text3:#6b635a;
+  --radius:14px;
+  --radius-sm:10px;
+  --radius-xs:7px;
+  --shadow:0 4px 24px rgba(0,0,0,0.5);
+  --shadow-sm:0 2px 12px rgba(0,0,0,0.35);
+  font-size:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',system-ui,sans-serif;overflow:hidden}
+input,button,select,textarea{font-family:inherit;font-size:inherit}
+button{cursor:pointer;border:none;background:none;color:inherit}
+
+/* ═══ LAYOUT ═══ */
+#app{width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden}
+.screen{flex:1;display:flex;flex-direction:column;overflow:hidden;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.scroll-area::-webkit-scrollbar{display:none}
+
+/* ═══ TOP BAR ═══ */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px 12px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  padding-top:max(16px,env(safe-area-inset-top));
+}
+.topbar-title{font-size:18px;font-weight:700}
+.topbar-back{width:36px;height:36px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:18px}
+
+/* ═══ BOTTOM NAV ═══ */
+.bottomnav{
+  display:flex;background:var(--bg2);
+  border-top:1px solid var(--border);
+  padding:8px 0 max(12px,env(safe-area-inset-bottom));
+  flex-shrink:0;
+}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;font-size:11px;color:var(--text3);transition:color .15s}
+.nav-item.active{color:var(--orange)}
+.nav-icon{font-size:22px;line-height:1}
+
+/* ═══ BUTTONS ═══ */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:15px 20px;border-radius:var(--radius);
+  font-size:16px;font-weight:700;transition:all .15s;
+  border:none;cursor:pointer;
+}
+.btn-primary{background:var(--orange);color:#fff}
+.btn-primary:active{background:var(--orange-dark);transform:scale(.98)}
+.btn-secondary{background:var(--surface);color:var(--text)}
+.btn-secondary:active{background:var(--surface2)}
+.btn-ghost{background:transparent;border:1.5px solid var(--border2);color:var(--text)}
+.btn-sm{padding:10px 16px;font-size:14px;border-radius:var(--radius-sm)}
+.btn-green{background:var(--green);color:#fff}
+.btn-yellow{background:var(--yellow);color:#000}
+.btn-danger{background:var(--red);color:#fff}
+.btn-icon{width:44px;height:44px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:20px;padding:0;flex-shrink:0}
+
+/* ═══ INPUTS ═══ */
+.input-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.input-label{font-size:13px;color:var(--text2);font-weight:500}
+.input{
+  width:100%;padding:13px 16px;
+  background:var(--surface);
+  border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);
+  color:var(--text);font-size:15px;
+  transition:border-color .15s;
+  outline:none;
+}
+.input:focus{border-color:var(--orange)}
+.input::placeholder{color:var(--text3)}
+
+/* ═══ CARDS ═══ */
+.card{background:var(--surface);border-radius:var(--radius);padding:16px;border:1px solid var(--border)}
+.card+.card{margin-top:10px}
+
+/* ═══ BADGES / PILLS ═══ */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:99px;font-size:12px;font-weight:600}
+.badge-orange{background:var(--orange-glow);color:var(--orange)}
+.badge-green{background:rgba(34,197,94,.15);color:var(--green)}
+.badge-yellow{background:rgba(255,210,63,.15);color:var(--yellow)}
+.badge-red{background:rgba(239,68,68,.15);color:var(--red)}
+.badge-gray{background:var(--surface2);color:var(--text2)}
+
+/* ═══ DIVIDER ═══ */
+.divider{height:1px;background:var(--border);margin:14px 0}
+
+/* ═══ ROW ═══ */
+.row{display:flex;align-items:center;gap:10px}
+.row.between{justify-content:space-between}
+.row.wrap{flex-wrap:wrap}
+.col{display:flex;flex-direction:column;gap:8px}
+
+/* ═══ TEXT UTILS ═══ */
+.title{font-size:26px;font-weight:800;line-height:1.1}
+.subtitle{font-size:14px;color:var(--text2)}
+.label{font-size:13px;color:var(--text2);font-weight:500}
+.mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.orange{color:var(--orange)}
+.green{color:var(--green)}
+.red{color:var(--red)}
+.muted{color:var(--text2)}
+.bold{font-weight:700}
+.center{text-align:center}
+
+/* ═══ PADDING ═══ */
+.pad{padding:20px}
+.pad-x{padding-left:20px;padding-right:20px}
+.pad-y{padding-top:20px;padding-bottom:20px}
+
+/* ═══ AVATAR ═══ */
+.avatar{
+  width:46px;height:46px;border-radius:50%;
+  background:linear-gradient(135deg,var(--orange),var(--yellow));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:16px;color:#fff;flex-shrink:0;
+}
+.avatar.lg{width:72px;height:72px;font-size:24px}
+.avatar.sm{width:36px;height:36px;font-size:13px}
+
+/* ═══ MAP ═══ */
+#map-container{flex:1;position:relative;min-height:0}
+#leaflet-map{width:100%;height:100%}
+.map-overlay-top{position:absolute;top:12px;left:12px;right:12px;z-index:999;display:flex;gap:8px}
+.map-overlay-bottom{
+  position:absolute;bottom:0;left:0;right:0;z-index:999;
+  background:var(--bg2);border-top:1px solid var(--border);
+  border-radius:var(--radius) var(--radius) 0 0;
+  padding:16px 20px;
+}
+.map-pill{
+  background:rgba(14,12,9,.85);backdrop-filter:blur(10px);
+  border:1px solid var(--border2);border-radius:99px;
+  padding:8px 14px;font-size:13px;font-weight:600;
+  display:flex;align-items:center;gap:6px;
+}
+.drag-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 14px}
+
+/* ═══ VEHICLE OPTION ═══ */
+.vehicle-option{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px;border-radius:var(--radius-sm);
+  border:1.5px solid var(--border);
+  background:var(--surface);
+  transition:all .15s;cursor:pointer;
+  margin-bottom:8px;
+}
+.vehicle-option.selected{border-color:var(--orange);background:var(--orange-glow)}
+.vehicle-option:active{transform:scale(.99)}
+
+/* ═══ PAYMENT METHOD ═══ */
+.pay-option{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px;border-radius:var(--radius-sm);
+  border:1.5px solid var(--border);background:var(--surface);
+  cursor:pointer;transition:all .15s;margin-bottom:8px;
+}
+.pay-option.selected{border-color:var(--orange);background:var(--orange-glow)}
+.radio-dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.radio-dot.on{border-color:var(--orange);background:var(--orange)}
+.radio-dot.on::after{content:'';width:6px;height:6px;border-radius:50%;background:#fff}
+
+/* ═══ CHAT ═══ */
+.chat-bubble{max-width:75%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.45}
+.bubble-in{background:var(--surface2);border-bottom-left-radius:4px;align-self:flex-start}
+.bubble-out{background:var(--orange);color:#fff;border-bottom-right-radius:4px;align-self:flex-end}
+.chat-input-row{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);background:var(--bg2)}
+
+/* ═══ RATING STARS ═══ */
+.stars{display:flex;gap:6px}
+.star{font-size:34px;cursor:pointer;transition:transform .1s;filter:grayscale(1);opacity:.4}
+.star.active{filter:none;opacity:1;color:var(--yellow)}
+.star:hover{transform:scale(1.15)}
+
+/* ═══ WALLET CARD ═══ */
+.wallet-card{
+  background:linear-gradient(135deg,var(--orange-dark) 0%,var(--orange) 60%,var(--yellow) 100%);
+  border-radius:var(--radius);padding:22px;color:#fff;
+  position:relative;overflow:hidden;
+}
+.wallet-card::before{content:'';position:absolute;top:-30px;right:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.08)}
+.wallet-card::after{content:'';position:absolute;bottom:-40px;left:20px;width:100px;height:100px;border-radius:50%;background:rgba(0,0,0,.06)}
+
+/* ═══ TRANSACTION ROW ═══ */
+.txn-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.txn-row:last-child{border-bottom:none}
+.txn-icon{width:40px;height:40px;border-radius:var(--radius-sm);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+
+/* ═══ HISTORY ROW ═══ */
+.hist-row{
+  display:flex;align-items:center;gap:12px;
+  padding:14px;background:var(--surface);border-radius:var(--radius-sm);
+  margin-bottom:10px;
+}
+
+/* ═══ DRIVER CARD ═══ */
+.driver-found-card{
+  background:var(--bg2);border-radius:var(--radius) var(--radius) 0 0;
+  padding:20px;border-top:1px solid var(--border);
+}
+
+/* ═══ PROGRESS BAR ═══ */
+.progress-track{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--orange);border-radius:2px;transition:width .5s ease}
+
+/* ═══ RIPPLE PULSE ═══ */
+@keyframes pulse-ring{0%{transform:scale(.8);opacity:.6}100%{transform:scale(2.2);opacity:0}}
+.pulse-ring{
+  position:absolute;border-radius:50%;background:var(--orange);
+  animation:pulse-ring 1.8s ease-out infinite;
+}
+
+/* ═══ SUPABASE STATUS ═══ */
+#supabase-banner{
+  background:rgba(255,119,51,.12);border-bottom:1px solid rgba(255,119,51,.3);
+  padding:8px 16px;font-size:12px;color:var(--orange);
+  display:flex;align-items:center;gap:6px;
+}
+
+/* ═══ TOAST ═══ */
+#toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--surface2);border:1px solid var(--border2);
+  padding:10px 20px;border-radius:99px;font-size:14px;font-weight:600;
+  opacity:0;transition:all .25s;z-index:9999;white-space:nowrap;
+  pointer-events:none;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ═══ MODAL ═══ */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;
+  display:flex;align-items:flex-end;
+  animation:fadeIn .2s;
+}
+.modal-sheet{
+  width:100%;background:var(--bg2);border-radius:var(--radius) var(--radius) 0 0;
+  padding:20px;max-height:90vh;overflow-y:auto;
+}
+
+/* ═══ OTP BOXES ═══ */
+.otp-row{display:flex;gap:8px;justify-content:center}
+.otp-box{
+  width:56px;height:64px;border-radius:var(--radius-sm);
+  border:1.5px solid var(--border2);background:var(--surface);
+  font-size:28px;font-weight:800;text-align:center;
+  color:var(--text);outline:none;transition:border-color .15s;
+}
+.otp-box:focus{border-color:var(--orange)}
+
+/* ═══ SWITCH ROLE ═══ */
+.role-selector{display:flex;background:var(--surface);border-radius:var(--radius-sm);padding:4px;gap:4px;margin-bottom:20px}
+.role-btn{flex:1;padding:10px;border-radius:9px;font-weight:700;font-size:14px;transition:all .15s;text-align:center;cursor:pointer}
+.role-btn.active{background:var(--orange);color:#fff}
+.role-btn:not(.active){color:var(--text2)}
+
+/* ═══ LOADING SPINNER ═══ */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:22px;height:22px;border:2.5px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+
+/* ═══ SECTION TITLE ═══ */
+.section-title{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+
+/* ═══ PROMO BANNER ═══ */
+.promo-banner{
+  background:linear-gradient(135deg,var(--orange-dark),var(--orange));
+  border-radius:var(--radius);padding:16px;color:#fff;
+  display:flex;align-items:center;justify-content:space-between;
+}
+
+/* ═══ DRIVER CARD IN LIST ═══ */
+.nearby-driver{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+
+/* ═══ STATUS STEP ═══ */
+.status-steps{display:flex;align-items:center;gap:6px;margin:16px 0}
+.step-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.step-line{flex:1;height:2px;border-radius:1px}
+.step-label{font-size:11px;color:var(--text3);text-align:center;flex:1}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast"></div>
+
+<!-- Leaflet.js -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   KAYTAXI MVP — App Engine
+   Stack: Vanilla JS + Supabase SDK (lazy-loaded) + Leaflet
+═══════════════════════════════════════════════════════════ */
+
+// ── CONFIG ──────────────────────────────────────────────────
+const CONFIG = {
+  SUPABASE_URL: 'https://zvebqjhwfoqpmrfckqzm.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2ZWJxamh3Zm9xcG1yZmNrcXptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNDIxODksImV4cCI6MjA5NDkxODE4OX0.VqqpcGsfs5SZmKoUZMTNlafNQi7HQ8Q_o1ySZ_vfKAU',
+  MAP_CENTER: [18.2009, -73.7510],  // Vil Okay, Ayiti
+  MAP_ZOOM: 14,
+  DEMO_MODE: false  // Supabase connecté ✓
+};
+
+// ── SUPABASE CLIENT ─────────────────────────────────────────
+let supabase = null;
+let realtimeChannel = null;
+let gpsWatchId = null;
+
+async function initSupabase() {
+  try {
+    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+    supabase = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true }
+    });
+    // Restore existing session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      await loadUserProfile(session.user.id);
+    }
+    // Auth state changes
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        await loadUserProfile(session.user.id);
+        const target = state.role==='driver' ? 'driver-home'
+                     : state.role==='admin'  ? 'admin-dashboard'
+                     : (state.user?.profile_complete ? 'home' : 'register');
+        navigate(target);
+      }
+      if (event === 'SIGNED_OUT') { state.user = null; navigate('login'); }
+    });
+    console.log('✅ Supabase OK');
+    return supabase;
+  } catch(e) {
+    console.error('Supabase:', e);
+    showToast('Mode démo — Supabase non connecté');
+    CONFIG.DEMO_MODE = true;
+  }
+}
+
+// ── DB HELPERS ───────────────────────────────────────────────
+
+async function loadUserProfile(userId) {
+  if (!supabase) return;
+  const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
+  if (data) {
+    state.user = {
+      id: userId,
+      name: data.full_name || 'Itilizatè',
+      phone: data.phone || '',
+      role: data.role || state.role,
+      avatar: data.avatar_url,
+      zone: data.zone,
+      profile_complete: !!data.full_name,
+    };
+    state.role = data.role || state.role;
+    await Promise.all([loadWallet(userId), loadHistory(userId)]);
+    if (state.role === 'driver') await loadDriverData(userId);
+    render();
+  }
+}
+
+async function loadWallet(userId) {
+  if (!supabase) return;
+  const { data: w } = await supabase.from('wallets').select('balance').eq('user_id', userId).single();
+  if (w) state.wallet.balance = parseFloat(w.balance);
+  const { data: txns } = await supabase
+    .from('wallet_transactions').select('*').eq('user_id', userId)
+    .order('created_at', { ascending: false }).limit(15);
+  if (txns) state.transactions = txns.map(tx => ({
+    id: tx.id,
+    icon: tx.type==='ride'?'🏍':tx.type==='topup'?'📱':tx.type==='bonus'?'🎁':'📦',
+    label: tx.description,
+    date: formatDate(tx.created_at),
+    amount: parseFloat(tx.amount),
+    type: parseFloat(tx.amount) > 0 ? 'in' : 'out',
+  }));
+}
+
+async function loadHistory(userId) {
+  if (!supabase) return;
+  const { data } = await supabase.from('rides')
+    .select('*, driver:profiles!rides_driver_id_fkey(full_name)')
+    .eq('passenger_id', userId).order('created_at', { ascending: false }).limit(30);
+  if (data) state.historyData = data.map(r => ({
+    id: r.id, type: r.vehicle_type||'moto',
+    from: r.pickup_address||'Soti', to: r.dropoff_address||'Ale',
+    date: formatDate(r.created_at), price: parseFloat(r.fare||0),
+    status: r.status==='completed'?'done':r.status==='cancelled'?'cancelled':'done',
+    rating: r.passenger_rating||0,
+  }));
+}
+
+async function loadDriverData(userId) {
+  if (!supabase) return;
+  const { data } = await supabase.from('driver_profiles').select('*').eq('user_id', userId).single();
+  if (data) {
+    state.driverData.earnings = parseFloat(data.today_earnings||0);
+    state.driverData.rides = data.today_rides||0;
+    state.driverData.rating = parseFloat(data.rating||5.0);
+    state.driverData.onDuty = data.is_online||false;
+  }
+}
+
+async function saveProfile(name, zone) {
+  if (!supabase || !state.user?.id) return false;
+  const { error } = await supabase.from('profiles').upsert({
+    id: state.user.id, full_name: name, zone, role: state.role,
+    updated_at: new Date().toISOString(),
+  });
+  if (!error) {
+    state.user.name = name; state.user.zone = zone; state.user.profile_complete = true;
+    await supabase.from('wallets').upsert({ user_id: state.user.id, balance: 0 }, { onConflict: 'user_id' });
+    return true;
+  }
+  return false;
+}
+
+async function createRide(vehicleType, pickupAddr, dropoffAddr, fare) {
+  if (!supabase || !state.user?.id) return null;
+  const { data, error } = await supabase.from('rides').insert({
+    passenger_id: state.user.id, vehicle_type: vehicleType,
+    pickup_address: pickupAddr, pickup_lat: CONFIG.MAP_CENTER[0], pickup_lng: CONFIG.MAP_CENTER[1],
+    dropoff_address: dropoffAddr, dropoff_lat: 18.1965, dropoff_lng: -73.7460,
+    fare, status: 'searching',
+  }).select().single();
+  return error ? null : data;
+}
+
+async function updateRideStatus(rideId, status, extra={}) {
+  if (!supabase || !rideId) return;
+  await supabase.from('rides').update({ status, ...extra }).eq('id', rideId);
+}
+
+async function processPayment(amount, method) {
+  if (!supabase || !state.user?.id) {
+    state.wallet.balance = parseFloat((state.wallet.balance - amount).toFixed(2));
+    return true;
+  }
+  const rideId = state.currentRide?.id;
+  if (method === 'wallet') {
+    const { error } = await supabase.from('wallets')
+      .update({ balance: supabase.rpc ? undefined : state.wallet.balance - amount })
+      .eq('user_id', state.user.id);
+    // Use raw update
+    await supabase.from('wallets').update({ balance: state.wallet.balance - amount }).eq('user_id', state.user.id);
+  }
+  await supabase.from('wallet_transactions').insert({
+    user_id: state.user.id, type: 'ride',
+    amount: -amount, description: `Kous · ${state.currentRide?.vehicle?.label||'Moto'}`,
+    ride_id: rideId||null,
+  });
+  if (rideId) await updateRideStatus(rideId, 'completed');
+  state.wallet.balance = parseFloat((state.wallet.balance - amount).toFixed(2));
+  return true;
+}
+
+async function topupWallet(amount, method) {
+  if (!supabase || !state.user?.id) {
+    state.wallet.balance = parseFloat((state.wallet.balance + amount).toFixed(2));
+    return true;
+  }
+  await supabase.from('wallets').update({ balance: state.wallet.balance + amount }).eq('user_id', state.user.id);
+  await supabase.from('wallet_transactions').insert({
+    user_id: state.user.id, type: 'topup',
+    amount: amount, description: `Rechaje · ${method}`,
+  });
+  state.wallet.balance = parseFloat((state.wallet.balance + amount).toFixed(2));
+  return true;
+}
+
+async function submitRating(rideId, rating, tip, comment) {
+  if (!supabase) return;
+  await supabase.from('ratings').insert({ ride_id: rideId, rated_by: state.user?.id, rating, tip, comment });
+  if (rideId) await supabase.from('rides').update({ passenger_rating: rating }).eq('id', rideId);
+}
+
+// ── REALTIME ─────────────────────────────────────────────────
+
+function subscribeToRide(rideId) {
+  if (!supabase || !rideId) return;
+  if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+  realtimeChannel = supabase.channel(`ride-${rideId}`)
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rides', filter: `id=eq.${rideId}` },
+      async (payload) => {
+        const r = payload.new;
+        if (r.status === 'accepted' && r.driver_id) {
+          await loadDriverForRide(r.driver_id);
+          navigate('driver-found');
+        }
+        if (r.status === 'in_progress') navigate('ride-inprogress');
+        if (r.status === 'completed')   navigate('ride-done');
+      })
+    .subscribe();
+}
+
+async function loadDriverForRide(driverId) {
+  if (!supabase) return;
+  const { data } = await supabase.from('profiles')
+    .select('*, driver_profiles(*)').eq('id', driverId).single();
+  if (data) {
+    state.currentRide = { ...state.currentRide, driver: {
+      id: driverId, name: data.full_name,
+      rating: data.driver_profiles?.[0]?.rating||4.9,
+      rides: data.driver_profiles?.[0]?.total_rides||0,
+      vehicle: data.driver_profiles?.[0]?.vehicle_name||'Moto',
+      plate: data.driver_profiles?.[0]?.plate||'HT-XXXX',
+      color: data.driver_profiles?.[0]?.vehicle_color||'N/A',
+      eta: 2,
+    }};
+  }
+}
+
+function startDriverGPS() {
+  if (!navigator.geolocation || !state.user?.id) return;
+  gpsWatchId = navigator.geolocation.watchPosition(pos => {
+    const { latitude: lat, longitude: lng } = pos.coords;
+    if (supabase) {
+      supabase.from('driver_locations').upsert(
+        { driver_id: state.user.id, lat, lng, updated_at: new Date().toISOString() },
+        { onConflict: 'driver_id' }
+      );
+    }
+  }, null, { enableHighAccuracy: true, maximumAge: 3000 });
+}
+
+function stopDriverGPS() {
+  if (gpsWatchId) navigator.geolocation.clearWatch(gpsWatchId);
+}
+
+// ── CHAT ─────────────────────────────────────────────────────
+
+async function loadMessages(rideId) {
+  if (!supabase || !rideId) return;
+  const { data } = await supabase.from('messages').select('*')
+    .eq('ride_id', rideId).order('created_at');
+  if (data) state.chatMessages = data.map(m => ({
+    from: m.sender_id === state.user?.id ? 'passenger' : 'driver',
+    text: m.content,
+    time: new Date(m.created_at).toTimeString().slice(0,5),
+  }));
+}
+
+async function sendMessage(content) {
+  if (!content.trim()) return;
+  if (!supabase || !state.currentRide?.id) {
+    state.chatMessages.push({ from:'passenger', text:content, time: new Date().toTimeString().slice(0,5) });
+    render(); return;
+  }
+  await supabase.from('messages').insert({
+    ride_id: state.currentRide.id, sender_id: state.user?.id, content,
+  });
+  state.chatMessages.push({ from:'passenger', text:content, time: new Date().toTimeString().slice(0,5) });
+  render();
+  setTimeout(() => { const el = document.getElementById('chat-messages'); if(el) el.scrollTop=el.scrollHeight; }, 50);
+}
+
+function subscribeToChatRide(rideId) {
+  if (!supabase || !rideId) return;
+  supabase.channel(`chat-${rideId}`)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `ride_id=eq.${rideId}` },
+      (payload) => {
+        const m = payload.new;
+        if (m.sender_id !== state.user?.id) {
+          state.chatMessages.push({ from:'driver', text:m.content, time: new Date(m.created_at).toTimeString().slice(0,5) });
+          if (state.screen==='chat') render();
+        }
+      })
+    .subscribe();
+}
+
+// ── ADMIN ─────────────────────────────────────────────────────
+
+async function loadAdminStats() {
+  if (!supabase) return;
+  const today = new Date().toISOString().split('T')[0];
+  const [ridesR, usersR] = await Promise.all([
+    supabase.from('rides').select('id,fare,status').gte('created_at', today),
+    supabase.from('profiles').select('id,role'),
+  ]);
+  const rides = ridesR.data || [];
+  const users = usersR.data || [];
+  state.adminStats = {
+    todayRides: rides.length,
+    todayRevenue: rides.reduce((s,r)=>s+parseFloat(r.fare||0), 0),
+    totalUsers: users.filter(u=>u.role==='passenger').length,
+    totalDrivers: users.filter(u=>u.role==='driver').length,
+  };
+}
+
+// ── FORMAT ────────────────────────────────────────────────────
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso), now = new Date(), diff = now - d;
+  if (diff < 86400000) return d.toTimeString().slice(0,5);
+  if (diff < 172800000) return 'Yè';
+  return d.toLocaleDateString('fr', { day:'numeric', month:'short' });
+}
+
+
+// ── APP STATE ────────────────────────────────────────────────
+const state = {
+  screen: 'splash',
+  role: 'passenger',   // 'passenger' | 'driver' | 'admin'
+  user: null,
+  currentRide: null,
+  wallet: { balance: 1240.50, currency: 'G' },
+  activeTab: 'home',
+  driverTab: 'home',
+  map: null,
+  driverMarkers: {},
+  rideStatus: 'idle', // idle|searching|found|onway|arrived|inride|done
+  selectedVehicle: 'moto',
+  selectedPayment: 'wallet',
+  chatMessages: [],
+  notifications: [],
+  lang: 'fr',  // 'fr' | 'ht'
+  historyData: [
+    { id:1, type:'moto', from:'Sentèl', to:'Lopital Imakile', date:'Jodi a 14:32', price:65, status:'done', rating:5 },
+    { id:2, type:'car',  from:'Lakou', to:'Aeropò A. Simon', date:'Yè 09:15',     price:320,status:'done', rating:5 },
+    { id:3, type:'pkg',  from:'Boutik', to:'Marie Joseph',   date:'21 jan',        price:180,status:'done', rating:4 },
+    { id:4, type:'moto', from:'Bergeaud', to:'Mache Sentèl', date:'20 jan',        price:50, status:'cancelled', rating:0 },
+  ],
+  transactions: [
+    { id:1, icon:'🏍', label:'Kous · Lopital', date:'Jodi a 14:32', amount:-65,  type:'out' },
+    { id:2, icon:'📱', label:'Rechaje · MonCash', date:'Yè 18:10', amount:+500, type:'in' },
+    { id:3, icon:'📦', label:'Livrezon paket', date:'20 jan', amount:-120, type:'out' },
+    { id:4, icon:'🎁', label:'Bonis envite', date:'18 jan', amount:+50,  type:'in' },
+  ],
+  driverData: {
+    onDuty: false,
+    earnings: 1840,
+    rides: 12,
+    rating: 4.9,
+    currentRequest: null,
+  }
+};
+
+const T = {
+  fr: {
+    where:'Où allez-vous ?',home_greeting:'Bonjou',wallet_balance:'Solde disponible',
+    searching:'Recherche en cours…',driver_found:'Chauffeur trouvé !',
+    ride_done:'Course terminée !',pay_now:'Payer maintenant',rate_driver:'Noter le chauffeur',
+    history:'Historique',profile:'Profil',wallet:'Wallet',
+    moto:'Moto-taxi',car:'Voiture',taptap:'Taptap',premium:'Premium',
+    arrive_in:'Arrive dans',minutes:'min',
+  },
+  ht: {
+    where:'Kote w prale ?',home_greeting:'Bonjou',wallet_balance:'Balans disponib',
+    searching:'Chèche chofè…',driver_found:'Chofè jwenn w !',
+    ride_done:'Kous fini !',pay_now:'Peye kounye a',rate_driver:'Note chofè a',
+    history:'Istwa',profile:'Mwen',wallet:'Wallet',
+    moto:'Moto-taxi',car:'Machin',taptap:'Taptap',premium:'Premium',
+    arrive_in:'Rive nan',minutes:'min',
+  }
+};
+const t = (k) => (T[state.lang]||T.fr)[k] || k;
+
+// ── NAVIGATION ───────────────────────────────────────────────
+function navigate(screen, data={}) {
+  Object.assign(state, data);
+  state.screen = screen;
+  render();
+}
+
+function goBack() {
+  const backMap = {
+    'vehicle-select':'home','searching':'home','driver-found':'home',
+    'ride-inprogress':'home','ride-done':'home','payment':'home',
+    'rate-driver':'home','chat':'home','history':'home',
+    'wallet-topup':'wallet','settings':'profile','notifications':'profile',
+  };
+  navigate(backMap[state.screen] || 'home');
+}
+
+// ── TOAST ────────────────────────────────────────────────────
+function showToast(msg, duration=2800) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), duration);
+}
+
+// ── SIMULATED DATA ───────────────────────────────────────────
+const DEMO_DRIVERS = [
+  { id:'d1', name:'Wilner Joseph', rating:4.9, rides:1248, vehicle:'Yamaha Crypton', plate:'HT-3892', type:'moto', color:'Wouj', lat:18.2020, lng:-73.7490, eta:2 },
+  { id:'d2', name:'Marc Antoine',  rating:4.7, rides:834,  vehicle:'Honda CB150',   plate:'HT-2241', type:'moto', color:'Nwa',  lat:18.1995, lng:-73.7530, eta:4 },
+  { id:'d3', name:'Jean-Louis P.', rating:4.8, rides:512,  vehicle:'Toyota Corolla',plate:'HT-5512', type:'car',  color:'Blan', lat:18.1980, lng:-73.7480, eta:7 },
+];
+
+const VEHICLES = [
+  { id:'moto',    icon:'🏍',  label:'Moto-taxi',  sub:'1 plas · Rapid',    price:75,  eta:2 },
+  { id:'taptap',  icon:'🚐',  label:'Taptap',     sub:'4 plas · Bon mache',price:50,  eta:5, shared:true },
+  { id:'car',     icon:'🚗',  label:'Voiture',    sub:'4 plas · Konfò',    price:220, eta:6 },
+  { id:'premium', icon:'✨',  label:'Premium A/C',sub:'4 plas · Klima',    price:380, eta:8 },
+  { id:'kamyon',  icon:'🚚',  label:'Kamyon',     sub:'8 plas · Demanaje', price:600, eta:12 },
+];
+
+// ── SCREENS ──────────────────────────────────────────────────
+
+// SPLASH
+function ScreenSplash() {
+  setTimeout(() => navigate('onboarding'), 2200);
+  return `
+  <div class="screen" style="background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:40px">
+    <div style="font-size:72px;font-weight:900;line-height:1;letter-spacing:-2px">
+      <span style="color:var(--orange)">Kay</span><span style="color:var(--yellow)">Taxi</span>
+    </div>
+    <div style="font-size:15px;color:var(--text2);margin-top:8px;letter-spacing:.05em">VIL OKAY · AYITI 🇭🇹</div>
+    <div style="margin-top:60px;display:flex;gap:6px">
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--orange);animation:spin .8s ease-in-out infinite alternate"></div>
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--yellow);animation:spin .8s ease-in-out infinite alternate .15s"></div>
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--orange);animation:spin .8s ease-in-out infinite alternate .3s"></div>
+    </div>
+  </div>`;
+}
+
+// ONBOARDING
+function ScreenOnboarding() {
+  const slides = [
+    { icon:'🗺️', title:'Kote w prale?', sub:'Ou ka rezève yon moto, machin, taptap oswa voye yon pakèt — tout nan yon sèl app.' },
+    { icon:'💳', title:'KayTaxi Wallet', sub:'Rechaje nan MonCash oswa NatCash. Peye san kach, resevwa bonis.' },
+    { icon:'📍', title:'Swiv an dirèk', sub:'Wè pozisyon chofè a sou kat an tan reyèl. Pataje kous la ak fanmi w.' },
+  ];
+  if (typeof ScreenOnboarding._idx === 'undefined') ScreenOnboarding._idx = 0;
+  const idx = ScreenOnboarding._idx;
+  const sl = slides[idx];
+  return `
+  <div class="screen" style="display:flex;flex-direction:column;padding:40px 24px;gap:0">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;text-align:center">
+      <div style="font-size:80px">${sl.icon}</div>
+      <div>
+        <div class="title" style="font-size:28px;margin-bottom:10px">${sl.title}</div>
+        <div class="subtitle" style="font-size:16px;line-height:1.6">${sl.sub}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        ${slides.map((_,i)=>`<div style="width:${i===idx?24:8}px;height:8px;border-radius:4px;background:${i===idx?'var(--orange)':'var(--surface2)'}"></div>`).join('')}
+      </div>
+    </div>
+    <div class="col" style="gap:10px">
+      ${idx < slides.length-1
+        ? `<button class="btn btn-primary" onclick="ScreenOnboarding._idx=${idx+1};render()">Swivan →</button>
+           <button class="btn btn-ghost btn-sm" onclick="navigate('login')">Sote</button>`
+        : `<button class="btn btn-primary" onclick="navigate('login')">Kòmanse →</button>`
+      }
+    </div>
+  </div>`;
+}
+
+// LOGIN
+function ScreenLogin() {
+  return `
+  <div class="screen scroll-area" style="padding:32px 24px">
+    <div style="margin-bottom:32px;text-align:center">
+      <div style="font-size:36px;font-weight:900"><span style="color:var(--orange)">Kay</span><span style="color:var(--yellow)">Taxi</span></div>
+      <div class="subtitle" style="margin-top:6px">Konekte pou kontinye</div>
+    </div>
+
+    <div class="role-selector">
+      <div class="role-btn ${state.role==='passenger'?'active':''}" onclick="state.role='passenger';render()">🧑 Pasajè</div>
+      <div class="role-btn ${state.role==='driver'?'active':''}" onclick="state.role='driver';render()">🏍 Chofè</div>
+      <div class="role-btn ${state.role==='admin'?'active':''}" onclick="state.role='admin';render()">⚙️ Admin</div>
+    </div>
+
+    <div class="input-group">
+      <div class="input-label">Adrès imèl ou</div>
+      <div style="position:relative">
+        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;pointer-events:none">✉️</span>
+        <input class="input" style="padding-left:44px" placeholder="jp@gmail.com" type="email" id="email-input" autocomplete="email"/>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;border-color:rgba(255,119,51,0.3)">
+      <div class="row" style="gap:10px">
+        <span style="font-size:20px">🔐</span>
+        <div>
+          <div style="font-size:13px;font-weight:600">Kòd 6 chif gratis</div>
+          <div class="subtitle" style="font-size:12px">N ap voye yon kòd pa imèl — pa bezwen modpas</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="handleLogin()">Voye kòd OTP ✉️</button>
+    <div style="text-align:center;margin-top:14px;font-size:13px;color:var(--text2)">
+      Pa gen kont? Ou ap kreye youn otomatikman.
+    </div>
+
+    <div style="margin-top:32px;text-align:center">
+      <div class="divider"></div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:10px">Oswa konekte ak</div>
+      <div style="display:flex;gap:10px;justify-content:center">
+        ${['G','f',''].map(l=>`<div style="width:48px;height:48px;border-radius:12px;border:1.5px solid var(--border2);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer">${l}</div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// OTP
+function ScreenOTP() {
+  const email = state._loginEmail || 'ou@imèl.com';
+  return `
+  <div class="screen" style="padding:32px 24px">
+    <button class="topbar-back" onclick="navigate('login')" style="margin-bottom:24px">←</button>
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="font-size:48px;margin-bottom:12px">✉️</div>
+      <div class="title" style="font-size:22px;margin-bottom:8px">Verifye imèl ou</div>
+      <div class="subtitle">Kòd 6 chif voye bay<br/>
+        <strong class="mono" style="color:var(--orange);font-size:14px">${email}</strong>
+      </div>
+      <div style="margin-top:8px;font-size:12px;color:var(--text3)">Verifye dosye spam ou si pa jwenn li</div>
+    </div>
+    <div class="otp-row" id="otp-row">
+      <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="handleOTPInput(this,0)" autofocus/>
+      <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="handleOTPInput(this,1)"/>
+      <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="handleOTPInput(this,2)"/>
+      <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="handleOTPInput(this,3)"/>
+      <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="handleOTPInput(this,4)"/>
+      <input class="otp-box" maxlength="1" type="text" inputmode="numeric" oninput="handleOTPInput(this,5)"/>
+    </div>
+    <div style="text-align:center;margin-top:20px;font-size:13px;color:var(--text2)">
+      Pa resevwa anyen? <span style="color:var(--orange);cursor:pointer" onclick="resendOTP()">Voye ankò</span> · <span id="otp-timer">01:00</span>
+    </div>
+    <div style="height:20px"></div>
+    <button class="btn btn-primary" id="verify-btn" onclick="handleOTPVerify()" style="opacity:.5;pointer-events:none">Verifye kòd la</button>
+    <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="navigate('login')">← Chanje imèl</button>
+  </div>`;
+}
+
+// REGISTER
+function ScreenRegister() {
+  return `
+  <div class="screen scroll-area">
+    <div class="topbar">
+      <button class="topbar-back" onclick="navigate('login')">←</button>
+      <div class="topbar-title">Kreye yon kont</div>
+      <div></div>
+    </div>
+    <div class="pad">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:16px">Etap 2 sou 3 · Pwofil</div>
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="width:90px;height:90px;border-radius:50%;border:2.5px dashed var(--border2);display:inline-flex;align-items:center;justify-content:center;font-size:36px;cursor:pointer;position:relative" onclick="showToast('Fonksyon foto ap vini…')">
+          👤
+          <div style="position:absolute;right:-4px;bottom:-4px;width:28px;height:28px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-size:15px">+</div>
+        </div>
+      </div>
+      <div class="input-group">
+        <div class="input-label">Non konplè</div>
+        <input class="input" placeholder="Jean Pierre" id="reg-name"/>
+      </div>
+      <div class="input-group">
+        <div class="input-label">Imèl (opsyonèl)</div>
+        <input class="input" placeholder="jp@gmail.com" type="email" id="reg-email" value="${state._loginEmail||''}"/>
+      </div>
+      <div class="input-group">
+        <div class="input-label">Zòn nan vil Okay</div>
+        <div class="row wrap" style="gap:8px;margin-top:4px">
+          ${['Lakou','Sentèl','Vye-Bouk','Bergeaud','Lòt'].map((z,i)=>`
+            <div class="badge ${i===1?'badge-orange':'badge-gray'}" style="cursor:pointer;padding:8px 14px;font-size:13px" onclick="showToast('${z} chwazi')">${z}</div>
+          `).join('')}
+        </div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:16px" onclick="handleRegister()">Kontinye →</button>
+    </div>
+  </div>`;
+}
+
+// HOME (PASSENGER)
+function ScreenHome() {
+  return `
+  <div class="screen">
+    <div id="map-container">
+      <div id="leaflet-map"></div>
+      <div class="map-overlay-top">
+        <div class="map-pill" style="flex:1">
+          <span>📍</span>
+          <span style="font-size:13px">Vil Okay · Sentèl</span>
+        </div>
+        <div class="map-pill" onclick="navigate('notifications')" style="position:relative">
+          🔔
+          <div style="position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--red)"></div>
+        </div>
+        <div class="map-pill" onclick="navigate('profile')">
+          <div class="avatar sm">${(state.user?.name||'JP').slice(0,2).toUpperCase()}</div>
+        </div>
+      </div>
+      <div class="map-overlay-bottom" id="home-sheet">
+        <div class="drag-handle"></div>
+        <div class="row between" style="margin-bottom:14px">
+          <div>
+            <div style="font-size:15px;color:var(--text2)">${t('home_greeting')} 👋</div>
+            <div class="bold" style="font-size:18px">${state.user?.name||'Jean Pierre'}</div>
+          </div>
+          <div class="badge badge-yellow">💼 G ${state.wallet.balance.toLocaleString()}</div>
+        </div>
+        <div style="position:relative;margin-bottom:14px" onclick="navigate('vehicle-select')">
+          <input class="input" placeholder="${t('where')}" style="padding-left:44px;cursor:pointer" readonly/>
+          <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px">🔍</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
+          ${[['🏍','Moto','vehicle-select'],['🚗','Machin','vehicle-select'],['🚐','Taptap','vehicle-select'],['📦','Pakèt','vehicle-select']].map(([ic,lbl,screen])=>`
+            <div class="card" style="text-align:center;padding:12px 6px;cursor:pointer" onclick="navigate('${screen}')">
+              <div style="font-size:24px">${ic}</div>
+              <div style="font-size:11px;margin-top:4px;color:var(--text2)">${lbl}</div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="promo-banner" onclick="showToast('Kòd OKAY20 kopye !')">
+          <div>
+            <div style="font-weight:700;font-size:15px">20% sou premye kous ou</div>
+            <div style="font-size:12px;opacity:.85">Kòd: <strong class="mono">OKAY20</strong></div>
+          </div>
+          <div style="font-size:24px">🎉</div>
+        </div>
+      </div>
+    </div>
+    ${BottomNav('home')}
+  </div>`;
+}
+
+// VEHICLE SELECT
+function ScreenVehicleSelect() {
+  const total = VEHICLES.find(v=>v.id===state.selectedVehicle)?.price || 75;
+  return `
+  <div class="screen">
+    <div style="height:200px;background:var(--bg3);position:relative;flex-shrink:0">
+      <div id="leaflet-map-mini" style="width:100%;height:100%"></div>
+      <button class="map-pill" style="position:absolute;top:12px;left:12px" onclick="goBack()">← Retounen</button>
+    </div>
+    <div class="scroll-area" style="padding:20px">
+      <div class="row between" style="margin-bottom:4px">
+        <div>
+          <div class="label">Sentèl → Lopital Imakile</div>
+          <div class="bold" style="font-size:18px">4.2 km · 11 min</div>
+        </div>
+        <div class="badge badge-orange">Pi rapid</div>
+      </div>
+      <div class="divider"></div>
+      ${VEHICLES.map(v=>`
+        <div class="vehicle-option ${state.selectedVehicle===v.id?'selected':''}" onclick="state.selectedVehicle='${v.id}';render()">
+          <div class="row" style="gap:14px">
+            <div style="font-size:28px">${v.icon}</div>
+            <div>
+              <div class="row" style="gap:6px">
+                <div class="bold">${v.label}</div>
+                ${v.shared?'<div class="badge badge-yellow" style="font-size:10px">Pataje</div>':''}
+              </div>
+              <div class="label">${v.sub} · ${v.eta} min</div>
+            </div>
+          </div>
+          <div class="bold" style="font-size:18px">G ${v.price}</div>
+        </div>
+      `).join('')}
+
+      <div class="card" style="margin-bottom:8px">
+        <div class="row between">
+          <div>
+            <div class="bold" style="font-size:14px">Negosye pri a</div>
+            <div class="label">Pwopoze yon pri bay chofè</div>
+          </div>
+          <button class="btn btn-yellow btn-sm" onclick="showNegotiateModal()">Eseye</button>
+        </div>
+      </div>
+    </div>
+    <div style="padding:16px 20px;border-top:1px solid var(--border);background:var(--bg2);display:flex;gap:10px;flex-shrink:0">
+      <button class="btn btn-ghost" style="width:130px" onclick="navigate('home')">💵 Kach</button>
+      <button class="btn btn-primary" style="flex:1" onclick="startRideSearch()">Rezève · G ${total}</button>
+    </div>
+  </div>`;
+}
+
+// SEARCHING
+function ScreenSearching() {
+  if (state.rideStatus === 'found') {
+    setTimeout(() => navigate('driver-found'), 100);
+    return '';
+  }
+  if (!ScreenSearching._started) {
+    ScreenSearching._started = true;
+    setTimeout(() => {
+      state.rideStatus = 'found';
+      state.currentRide = { driver: DEMO_DRIVERS[0], vehicle: VEHICLES.find(v=>v.id===state.selectedVehicle) };
+      ScreenSearching._started = false;
+      navigate('driver-found');
+    }, 3500);
+  }
+  return `
+  <div class="screen">
+    <div id="map-container">
+      <div id="leaflet-map" style="width:100%;height:100%"></div>
+      <div class="map-overlay-bottom">
+        <div class="drag-handle"></div>
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="font-size:22px;font-weight:800;color:var(--orange)">${t('searching')}</div>
+          <div class="subtitle">3 moto disponib bò kote w</div>
+          <div style="margin:12px auto;width:60px;height:60px;position:relative">
+            <div class="pulse-ring" style="width:60px;height:60px;top:0;left:0;animation-delay:0s"></div>
+            <div class="pulse-ring" style="width:60px;height:60px;top:0;left:0;animation-delay:.6s"></div>
+            <div style="position:relative;width:60px;height:60px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-size:24px;z-index:1">🏍</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="row between">
+            <div>
+              <div class="label">Sentèl → Lopital Imakile</div>
+              <div class="bold">🏍 Moto · G ${VEHICLES.find(v=>v.id===state.selectedVehicle)?.price||75}</div>
+            </div>
+            <div class="badge badge-yellow">📱 Wallet</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:12px">
+          <button class="btn btn-ghost" style="flex:1" onclick="navigate('home')">Anile</button>
+          <button class="btn btn-yellow" style="flex:1" onclick="navigate('vehicle-select')">Modifye</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// DRIVER FOUND
+function ScreenDriverFound() {
+  const d = state.currentRide?.driver || DEMO_DRIVERS[0];
+  return `
+  <div class="screen">
+    <div id="map-container">
+      <div id="leaflet-map" style="width:100%;height:100%"></div>
+      <div class="driver-found-card" style="position:absolute;bottom:0;left:0;right:0;z-index:999">
+        <div class="drag-handle"></div>
+        <div style="text-align:center;margin-bottom:16px">
+          <div class="badge badge-yellow" style="font-size:14px;padding:8px 16px">${t('driver_found')}</div>
+          <div style="font-size:48px;font-weight:900;margin:6px 0;color:var(--orange)">${d.eta} min</div>
+          <div class="subtitle">${d.name} ap rive...</div>
+        </div>
+        <div class="card">
+          <div class="row" style="gap:14px">
+            <div class="avatar">${d.name.slice(0,2)}</div>
+            <div style="flex:1">
+              <div class="bold" style="font-size:17px">${d.name}</div>
+              <div class="label">⭐ ${d.rating} · ${d.rides.toLocaleString()} kous</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button class="btn-icon" onclick="navigate('chat')">💬</button>
+              <button class="btn-icon" style="background:var(--green)" onclick="showToast('Rele chofè…')">📞</button>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="row between">
+            <div>
+              <div class="label">${d.vehicle}</div>
+              <div class="bold mono" style="font-size:18px;letter-spacing:2px">${d.plate}</div>
+            </div>
+            <div style="text-align:right">
+              <div class="label">Koulè</div>
+              <div class="bold">${d.color}</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:12px">
+          <button class="btn btn-ghost" style="flex:1" onclick="navigate('home')">Anile</button>
+          <button class="btn btn-secondary" style="flex:1" onclick="showToast('Lyen kopye !')">🔗 Pataje</button>
+          <button class="btn btn-primary" style="flex:2" onclick="navigate('ride-inprogress')">Simuye kous →</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// RIDE IN PROGRESS
+function ScreenRideInProgress() {
+  const d = state.currentRide?.driver || DEMO_DRIVERS[0];
+  return `
+  <div class="screen">
+    <div id="map-container">
+      <div id="leaflet-map" style="width:100%;height:100%"></div>
+      <div style="position:absolute;top:14px;left:14px;right:14px;z-index:999;display:flex;justify-content:space-between">
+        <div class="badge badge-orange" style="padding:8px 14px;font-size:13px">⚡ Sou wout</div>
+        <div class="map-pill" style="background:rgba(239,68,68,.2);border-color:rgba(239,68,68,.4);color:var(--red)" onclick="showToast('SOS voye !')">SOS 🚨</div>
+      </div>
+      <div class="map-overlay-bottom">
+        <div class="drag-handle"></div>
+        <div class="row between" style="margin-bottom:16px">
+          <div>
+            <div class="label">Rive nan</div>
+            <div style="font-size:42px;font-weight:900;color:var(--orange)">5 min</div>
+          </div>
+          <div class="avatar">${d.name.slice(0,2)}</div>
+        </div>
+        <div style="margin-bottom:8px">
+          <div class="status-steps">
+            <div class="step-dot" style="background:var(--green)"></div>
+            <div class="step-line" style="background:var(--green)"></div>
+            <div class="step-dot" style="background:var(--orange)"></div>
+            <div class="step-line" style="background:var(--surface2)"></div>
+            <div class="step-dot" style="background:var(--surface2);border:2px solid var(--border2)"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3)">
+            <span>Ranmase ✓</span>
+            <span style="color:var(--orange)">Sou wout</span>
+            <span>Rive</span>
+          </div>
+        </div>
+        <div class="progress-track" style="margin-bottom:14px">
+          <div class="progress-fill" style="width:55%"></div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-ghost" style="flex:1" onclick="navigate('chat')">💬 Mesaj</button>
+          <button class="btn btn-yellow" style="flex:1" onclick="showToast('Rele chofè…')">📞 Rele</button>
+          <button class="btn btn-primary" style="flex:1" onclick="navigate('ride-done')">→ Rive</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// RIDE DONE / ARRIVED
+function ScreenRideDone() {
+  const d = state.currentRide?.driver || DEMO_DRIVERS[0];
+  const v = state.currentRide?.vehicle || VEHICLES[0];
+  return `
+  <div class="screen">
+    <div id="map-container">
+      <div id="leaflet-map" style="width:100%;height:100%"></div>
+      <div class="map-overlay-bottom">
+        <div class="drag-handle"></div>
+        <div class="badge badge-green" style="padding:8px 16px;font-size:14px;margin-bottom:12px">✅ Chofè a rive!</div>
+        <div class="bold" style="font-size:20px;margin-bottom:16px">${d.name} ap tann ou deyò.</div>
+        <div class="card">
+          <div class="row between">
+            <div>
+              <div class="label">Plak</div>
+              <div class="bold mono" style="font-size:26px;letter-spacing:3px">${d.plate}</div>
+            </div>
+            <div style="text-align:right">
+              <div class="label">Kòd PIN</div>
+              <div class="bold mono" style="font-size:30px;letter-spacing:6px;color:var(--orange)">4 7 2</div>
+            </div>
+          </div>
+          <div class="label" style="margin-top:8px">Bay chofè a kòd PIN nan pou konfime se ou.</div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:14px">
+          <button class="btn btn-ghost" style="flex:1" onclick="showToast('OK nap tann…')">M ap rive…</button>
+          <button class="btn btn-primary" style="flex:2" onclick="navigate('payment')">Mwen la ✓</button>
+        </div>
+        <div class="label" style="text-align:center;margin-top:10px"><strong>5 min</strong> tan li ap tann · apre li ka anile</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// PAYMENT
+function ScreenPayment() {
+  const PAY_METHODS = [
+    { id:'wallet', icon:'💼', label:'KayTaxi Wallet', sub:`G ${state.wallet.balance.toLocaleString()} disponib` },
+    { id:'moncash', icon:'📱', label:'MonCash', sub:'+509 37 12 ••' },
+    { id:'natcash', icon:'📲', label:'NatCash', sub:'Lye kont' },
+    { id:'cash', icon:'💵', label:'Kach bay chofè', sub:'' },
+  ];
+  const v = state.currentRide?.vehicle || VEHICLES[0];
+  const price = v.price || 75;
+  const disc = 15;
+  const fee = 5;
+  const total = price + fee - disc;
+  return `
+  <div class="screen">
+    <div class="topbar">
+      <button class="topbar-back" onclick="goBack()">←</button>
+      <div class="topbar-title">Peman</div>
+      <div></div>
+    </div>
+    <div class="scroll-area pad">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:40px">🎉</div>
+        <div style="font-size:22px;font-weight:800;color:var(--orange)">${t('ride_done')}</div>
+        <div class="subtitle">Vil Okay · 11 min · 4.2 km</div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="row between" style="margin-bottom:8px"><span>Pri kous</span><span>G ${price}</span></div>
+        <div class="row between" style="margin-bottom:8px"><span class="muted">Frè sèvis</span><span class="muted">G ${fee}</span></div>
+        <div class="row between" style="margin-bottom:8px"><span class="muted">Rabè OKAY20</span><span style="color:var(--green)">−G ${disc}</span></div>
+        <div class="divider"></div>
+        <div class="row between">
+          <span class="bold" style="font-size:18px">Total</span>
+          <span class="bold" style="font-size:22px">G ${total}</span>
+        </div>
+      </div>
+      <div class="section-title">Mòd peman</div>
+      ${PAY_METHODS.map(m=>`
+        <div class="pay-option ${state.selectedPayment===m.id?'selected':''}" onclick="state.selectedPayment='${m.id}';render()">
+          <div class="row" style="gap:12px">
+            <div style="font-size:22px">${m.icon}</div>
+            <div>
+              <div class="bold">${m.label}</div>
+              ${m.sub?`<div class="label">${m.sub}</div>`:''}
+            </div>
+          </div>
+          <div class="radio-dot ${state.selectedPayment===m.id?'on':''}"></div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="padding:16px 20px;border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0">
+      <button class="btn btn-primary" onclick="handlePayment(${total})">Peye G ${total}</button>
+    </div>
+  </div>`;
+}
+
+// PAYMENT CONFIRMED
+function ScreenPaymentDone() {
+  const total = 65;
+  return `
+  <div class="screen" style="justify-content:center;padding:30px 24px">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="width:100px;height:100px;border-radius:50%;border:3px solid var(--green);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:52px">✓</div>
+      <div style="font-size:28px;font-weight:800;color:var(--green)">Peman fèt!</div>
+      <div class="subtitle">21 jan 2026 · 14:32</div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="row between" style="margin-bottom:10px"><span>Bay</span><span class="bold">${state.currentRide?.driver?.name||'Wilner Joseph'}</span></div>
+      <div class="row between" style="margin-bottom:10px"><span>Soti nan</span><span class="bold">KayTaxi Wallet</span></div>
+      <div class="row between" style="margin-bottom:10px"><span>Referans</span><span class="mono label">#KT-8432-92</span></div>
+      <div class="divider"></div>
+      <div class="row between" style="margin-bottom:6px"><span>Dedui nan wallet</span><span>−G ${total}</span></div>
+      <div class="row between"><span class="label">Nouvo balans</span><span class="label">G ${(state.wallet.balance - total).toFixed(2)}</span></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:12px">
+      <button class="btn btn-ghost" style="flex:1" onclick="showToast('Resi telechaje !')">📄 Resi</button>
+      <button class="btn btn-yellow" style="flex:1" onclick="navigate('rate-driver')">⭐ Note chofè</button>
+    </div>
+    <button class="btn btn-secondary" onclick="navigate('home')">Retounen lakay</button>
+  </div>`;
+}
+
+// RATE DRIVER
+function ScreenRateDriver() {
+  if (!ScreenRateDriver._rating) ScreenRateDriver._rating = 4;
+  const tips = ['G 0','G 10','G 20','G 50','Lòt'];
+  if (!ScreenRateDriver._tip) ScreenRateDriver._tip = 2;
+  const d = state.currentRide?.driver || DEMO_DRIVERS[0];
+  return `
+  <div class="screen scroll-area pad">
+    <div style="text-align:center;margin-bottom:24px">
+      <div class="avatar lg" style="margin:0 auto 14px">${d.name.slice(0,2)}</div>
+      <div class="bold" style="font-size:22px">${d.name}</div>
+      <div class="label">Note chofè a · 11 min · G 65</div>
+    </div>
+    <div class="stars" style="justify-content:center;margin-bottom:16px" id="star-row">
+      ${[1,2,3,4,5].map(n=>`
+        <span class="star ${n<=ScreenRateDriver._rating?'active':''}" onclick="ScreenRateDriver._rating=${n};document.getElementById('star-row').innerHTML=renderStars(${n})">★</span>
+      `).join('')}
+    </div>
+    <div class="bold orange" style="text-align:center;font-size:18px;margin-bottom:16px">
+      ${['','Trè mal 😞','Mal 😐','Bon 😊','Trè bon 😄','Ekselan 🌟'][ScreenRateDriver._rating]}
+    </div>
+    <div class="section-title">Kisa ki te bon?</div>
+    <div class="row wrap" style="gap:8px;margin-bottom:16px">
+      ${['🏍 Bon kondui','⏱ Rapid','😊 Janti','🛣 Bon wout','🎵 Mizik','💧 Pwòp'].map((tag,i)=>`
+        <div class="badge ${[0,2].includes(i)?'badge-orange':'badge-gray'}" style="cursor:pointer;padding:8px 12px;font-size:13px" onclick="showToast('${tag} !')">
+          ${tag}
+        </div>
+      `).join('')}
+    </div>
+    <div class="input-group">
+      <div class="input-label">Lèse yon mesaj (opsyonèl)</div>
+      <textarea class="input" rows="3" placeholder="Mèsi ${d.name}, ou trè janti…" style="resize:none"></textarea>
+    </div>
+    <div class="section-title" style="margin-top:4px">Bay tip?</div>
+    <div class="row" style="gap:8px;margin-bottom:20px">
+      ${tips.map((v,i)=>`
+        <div class="badge ${i===ScreenRateDriver._tip?'badge-orange':'badge-gray'}" style="cursor:pointer;padding:8px 14px;font-size:13px;flex:1;text-align:center" onclick="ScreenRateDriver._tip=${i};render()">
+          ${v}
+        </div>
+      `).join('')}
+    </div>
+    <button class="btn btn-primary" onclick="handleRatingSubmit()">
+      Voye nòt ${ScreenRateDriver._tip>0?'· + '+tips[ScreenRateDriver._tip]+' tip':''}
+    </button>
+    <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="navigate('payment-done')">Sote</button>
+  </div>`;
+}
+
+function renderStars(r) {
+  return [1,2,3,4,5].map(n=>`<span class="star ${n<=r?'active':''}" onclick="ScreenRateDriver._rating=${n};document.getElementById('star-row').innerHTML=renderStars(${n})">★</span>`).join('');
+}
+
+// CHAT
+function ScreenChat() {
+  const d = state.currentRide?.driver || DEMO_DRIVERS[0];
+  if (!state.chatMessages.length) {
+    state.chatMessages = [
+      { from:'driver', text:"Bonjou ! Mwen sou chemen an, 2 minit.", time:'14:31' },
+      { from:'passenger', text:"OK mèsi ! Mwen deyò.", time:'14:31' },
+      { from:'driver', text:"Parfè ! Yamaha Crypton Wouj HT-3892.", time:'14:32' },
+    ];
+  }
+  return `
+  <div class="screen">
+    <div class="topbar">
+      <button class="topbar-back" onclick="goBack()">←</button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="avatar sm">${d.name.slice(0,2)}</div>
+        <div>
+          <div class="bold" style="font-size:15px">${d.name}</div>
+          <div style="font-size:11px;color:var(--green)">● En ligne</div>
+        </div>
+      </div>
+      <button class="btn-icon btn-sm" onclick="showToast('Rele chofè…')">📞</button>
+    </div>
+    <div class="scroll-area pad" id="chat-messages" style="display:flex;flex-direction:column;gap:10px">
+      ${state.chatMessages.map(m=>`
+        <div style="display:flex;flex-direction:column;align-items:${m.from==='passenger'?'flex-end':'flex-start'};gap:3px">
+          <div class="chat-bubble ${m.from==='passenger'?'bubble-out':'bubble-in'}">${m.text}</div>
+          <div style="font-size:11px;color:var(--text3)">${m.time}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="chat-input-row">
+      <input class="input" style="flex:1" placeholder="Ekri yon mesaj…" id="chat-input" onkeydown="if(event.key==='Enter')sendChatMsg()"/>
+      ${['🏍','📍','✅'].map(e=>`<button class="btn-icon btn-sm" onclick="quickChat('${e}')">${e}</button>`).join('')}
+      <button class="btn btn-primary btn-sm" style="width:44px;padding:0" onclick="sendChatMsg()">→</button>
+    </div>
+  </div>`;
+}
+
+function sendChatMsg() {
+  const inp = document.getElementById('chat-input');
+  if (!inp?.value.trim()) return;
+  const msg = inp.value.trim();
+  inp.value = '';
+  sendMessage(msg);
+}
+function quickChat(emoji) {
+  sendMessage(emoji);
+}
+
+// WALLET
+function ScreenWallet() {
+  return `
+  <div class="screen">
+    <div class="topbar">
+      <div class="topbar-title">KayTaxi Wallet</div>
+      <button class="btn-icon" onclick="navigate('settings')">⚙️</button>
+    </div>
+    <div class="scroll-area">
+      <div style="padding:20px">
+        <div class="wallet-card">
+          <div style="position:relative;z-index:1">
+            <div style="font-size:13px;opacity:.85;margin-bottom:4px">${t('wallet_balance')}</div>
+            <div style="font-size:46px;font-weight:900;line-height:1" class="mono">G ${state.wallet.balance.toLocaleString()}<span style="font-size:24px">.50</span></div>
+            <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:13px;opacity:.85">
+              <span>≈ $9.30 USD</span>
+              <span class="mono">**** 4892</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px">
+          ${[['↑','Voye','navigate(\"wallet\")'],['↓','Resevwa','showToast(\"Kòd kopi !\")'],['＋','Rechaje','navigate(\"wallet-topup\")'],['⇄','Retire','showToast(\"Demande kopi !\")']].map(([ic,lbl,fn])=>`
+            <div class="card" style="text-align:center;padding:12px 4px;cursor:pointer" onclick="${fn}">
+              <div style="font-size:22px;color:var(--orange);font-weight:800">${ic}</div>
+              <div style="font-size:11px;margin-top:4px;color:var(--text2)">${lbl}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div style="padding:0 20px 20px">
+        <div class="row between" style="margin-bottom:12px">
+          <div class="section-title" style="margin:0">Tranzaksyon resan</div>
+          <span style="font-size:13px;color:var(--orange);cursor:pointer">Wè tout</span>
+        </div>
+        ${state.transactions.map(tx=>`
+          <div class="txn-row">
+            <div class="txn-icon">${tx.icon}</div>
+            <div style="flex:1">
+              <div class="bold" style="font-size:14px">${tx.label}</div>
+              <div class="label">${tx.date}</div>
+            </div>
+            <div class="bold mono ${tx.type==='in'?'green':'text'}" style="font-size:16px">
+              ${tx.type==='in'?'+':'−'}G ${Math.abs(tx.amount)}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    ${BottomNav('wallet')}
+  </div>`;
+}
+
+// WALLET TOP UP
+function ScreenWalletTopup() {
+  const amounts = [100,250,500,1000,2000];
+  if (!ScreenWalletTopup._sel) ScreenWalletTopup._sel = 500;
+  return `
+  <div class="screen">
+    <div class="topbar">
+      <button class="topbar-back" onclick="navigate('wallet')">←</button>
+      <div class="topbar-title">Rechaje wallet</div>
+      <div></div>
+    </div>
+    <div class="scroll-area pad">
+      <div style="text-align:center;margin-bottom:20px">
+        <div class="label">Balans aktyèl</div>
+        <div style="font-size:28px;font-weight:800;color:var(--orange)" class="mono">G ${state.wallet.balance.toLocaleString()}</div>
+      </div>
+      <div class="card" style="margin-bottom:16px;border-color:var(--orange)">
+        <div class="label" style="text-align:center;margin-bottom:4px">Antre montan</div>
+        <div style="font-size:48px;font-weight:900;text-align:center" class="mono">G <span style="color:var(--orange)">${ScreenWalletTopup._sel}</span></div>
+      </div>
+      <div class="row" style="gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px">
+        ${amounts.map(v=>`
+          <div class="badge ${v===ScreenWalletTopup._sel?'badge-orange':'badge-gray'}" style="cursor:pointer;padding:10px 16px;font-size:14px" onclick="ScreenWalletTopup._sel=${v};render()">
+            G ${v}
+          </div>
+        `).join('')}
+      </div>
+      <div class="section-title">Soti nan</div>
+      ${[['📱','MonCash','+509 37 12 ••',true],['📲','NatCash','Lye yon kont',false],['🏦','Sogebank','Vire dirèk',false]].map(([ic,nm,sub,on])=>`
+        <div class="pay-option ${on?'selected':''}">
+          <div class="row" style="gap:12px">
+            <span style="font-size:22px">${ic}</span>
+            <div><div class="bold">${nm}</div><div class="label">${sub}</div></div>
+          </div>
+          <div class="radio-dot ${on?'on':''}"></div>
+        </div>
+      `).join('')}
+      <div class="label" style="text-align:center;margin:12px 0">Frè rechaje: G 0 · Limit: G 25,000 / jou</div>
+    </div>
+    <div style="padding:16px 20px;border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0">
+      <button class="btn btn-primary" onclick="handleTopup(${ScreenWalletTopup._sel})">Rechaje G ${ScreenWalletTopup._sel}</button>
+    </div>
+  </div>`;
+}
+
+// HISTORY
+function ScreenHistory() {
+  const TYPE_ICONS = { moto:'🏍', car:'🚗', taptap:'🚐', pkg:'📦' };
+  return `
+  <div class="screen">
+    <div class="topbar">
+      <div class="topbar-title">${t('history')}</div>
+      <button class="btn-icon" onclick="showToast('Filtè ap vini…')">📅</button>
+    </div>
+    <div class="scroll-area pad">
+      <div class="row" style="gap:8px;margin-bottom:16px;flex-wrap:wrap">
+        ${['Tout','Kous','Livrezon','Anile'].map((f,i)=>`
+          <div class="badge ${i===0?'badge-orange':'badge-gray'}" style="cursor:pointer;padding:8px 14px;font-size:13px">
+            ${f}
+          </div>
+        `).join('')}
+      </div>
+      <div class="section-title">JANVYE 2026</div>
+      ${state.historyData.map(r=>`
+        <div class="hist-row" onclick="showToast('Detay kous #${r.id}')">
+          <div style="width:42px;height:42px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">
+            ${TYPE_ICONS[r.type]||'🏍'}
+          </div>
+          <div style="flex:1;min-width:0">
+            <div class="bold" style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.from} → ${r.to}</div>
+            <div class="label">${r.date}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div class="bold mono">G ${r.price}</div>
+            <div class="${r.status==='cancelled'?'red':'green'}" style="font-size:12px">
+              ${r.status==='done'?'⭐ '+r.rating:'Anile'}
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    ${BottomNav('history')}
+  </div>`;
+}
+
+// PROFILE
+function ScreenProfile() {
+  const name = state.user?.name || 'Jean Pierre';
+  const phone = state.user?.email || state._loginEmail || 'imèl@gmail.com';
+  return `
+  <div class="screen">
+    <div class="topbar">
+      <div class="topbar-title">${t('profile')}</div>
+      <button class="btn-icon" onclick="navigate('settings')">⚙️</button>
+    </div>
+    <div class="scroll-area">
+      <div style="padding:20px;background:linear-gradient(180deg,rgba(255,119,51,.15) 0%,transparent 100%)">
+        <div class="row" style="gap:14px;margin-bottom:18px">
+          <div class="avatar lg">${name.slice(0,2).toUpperCase()}</div>
+          <div style="flex:1">
+            <div class="bold" style="font-size:22px">${name}</div>
+            <div class="label">${phone}</div>
+            <div class="row" style="gap:8px;margin-top:6px">
+              <div class="badge badge-yellow">⭐ 4.9</div>
+              <div class="badge badge-gray">Manm depi 2024</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+          ${[['48','Kous'],['312 km','Vwayaje'],['G 4.2k','Depanse']].map(([v,l])=>`
+            <div class="card" style="text-align:center;padding:12px 8px">
+              <div class="bold" style="font-size:20px;color:var(--orange)">${v}</div>
+              <div class="label" style="font-size:12px">${l}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div style="padding:0 20px 20px">
+        ${[
+          ['💼','Wallet & Peman','wallet'],
+          ['📍','Adrès sove yo','home'],
+          ['🎁','Pwomosyon & Bonis','home'],
+          ['🔔','Notifikasyon','notifications'],
+          ['🌐',`Lang · ${state.lang==='fr'?'Français':'Kreyòl'}`,'settings'],
+          ['🛡','Sekirite & Privacy','settings'],
+          ['❓','Èd & Sipò','home'],
+          ['🚪','Dekonekte','login'],
+        ].map(([ic,lbl,screen])=>`
+          <div class="row between" style="padding:14px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="navigate('${screen}')">
+            <div class="row" style="gap:14px"><span style="font-size:20px">${ic}</span><span>${lbl}</span></div>
+            <span style="color:var(--text3)">›</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    ${BottomNav('profile')}
+  </div>`;
+}
+
+// NOTIFICATIONS
+function ScreenNotifications() {
+  const notifs = [
+    { icon:'🏍', title:'Chofè ap rive!', sub:'Wilner Joseph · HT-3892 · 2 min', time:'14:32', read:false },
+    { icon:'💸', title:'Peman resi', sub:'G 65 dedui pou kous Sentèl → Lopital', time:'14:33', read:false },
+    { icon:'🎁', title:'Promo OKAY20', sub:'Itilize kòd la pou 20% rabè!', time:'Yè', read:true },
+    { icon:'⭐', title:'Bonis envite!', sub:'Zanmi ou Jean-Louis te konekte', time:'18 jan', read:true },
+  ];
+  return `
+  <div class="screen">
+    <div class="topbar">
+      <button class="topbar-back" onclick="goBack()">←</button>
+      <div class="topbar-title">Notifikasyon</div>
+      <span style="color:var(--orange);font-size:13px;cursor:pointer" onclick="showToast('Tout li !')">Mak tout li</span>
+    </div>
+    <div class="scroll-area pad">
+      ${notifs.map(n=>`
+        <div class="card row" style="gap:12px;opacity:${n.read?.7:1};margin-bottom:10px">
+          <div style="width:44px;height:44px;border-radius:12px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${n.icon}</div>
+          <div style="flex:1">
+            <div class="bold" style="font-size:14px">${n.title}</div>
+            <div class="label">${n.sub}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+            <div style="font-size:11px;color:var(--text3)">${n.time}</div>
+            ${!n.read?'<div style="width:8px;height:8px;border-radius:50%;background:var(--orange)"></div>':''}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+}
+
+// SETTINGS
+function ScreenSettings() {
+  return `
+  <div class="screen">
+    <div class="topbar">
+      <button class="topbar-back" onclick="goBack()">←</button>
+      <div class="topbar-title">Paramèt</div>
+      <div></div>
+    </div>
+    <div class="scroll-area pad">
+      <div class="section-title">Lang / Langue</div>
+      <div class="role-selector" style="margin-bottom:20px">
+        <div class="role-btn ${state.lang==='ht'?'active':''}" onclick="state.lang='ht';render();showToast('Kreyòl chwazi !')">🇭🇹 Kreyòl</div>
+        <div class="role-btn ${state.lang==='fr'?'active':''}" onclick="state.lang='fr';render();showToast('Français sélectionné !')">🇫🇷 Français</div>
+      </div>
+      <div class="section-title">Aplikasyon</div>
+      ${[
+        ['🔔','Notifikasyon push','Aktive'],
+        ['📍','Pataje lokalizasyon','Toujou'],
+        ['🌙','Mòd nwa','Aktive'],
+        ['🔒','Verifikasyon 2 etap','Aktive'],
+      ].map(([ic,lbl,val])=>`
+        <div class="row between" style="padding:14px 0;border-bottom:1px solid var(--border)">
+          <div class="row" style="gap:12px"><span style="font-size:18px">${ic}</span><span>${lbl}</span></div>
+          <span class="badge badge-green">${val}</span>
+        </div>
+      `).join('')}
+      <div style="height:20px"></div>
+      <div class="section-title">Supabase</div>
+      <div class="card">
+        <div class="row" style="gap:10px;margin-bottom:12px">
+          <span style="font-size:22px">✅</span>
+          <div>
+            <div class="bold">Supabase konekte</div>
+            <div class="label" style="font-size:12px">zvebqjhwfoqpmrfckqzm.supabase.co</div>
+          </div>
+        </div>
+        <div style="padding:10px 12px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:10px">
+          <div class="label" style="margin-bottom:6px;font-size:12px">📋 Config Email OTP — Supabase Dashboard</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.7">
+            1. Authentication → Providers → Email → ✓ Enable<br/>
+            2. Desaktive "Confirm email" <span style="color:var(--orange)">(pou OTP kòd)</span><br/>
+            3. Email Templates → Magic Link → remplace<br/>
+            <span class="mono" style="font-size:11px;color:var(--orange)">{{ .ConfirmationURL }}</span><br/>
+            pa <span class="mono" style="font-size:11px;color:var(--green)">{{ .Token }}</span>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="showToast('Paramèt Supabase ✓')">Tès koneksyon</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─────────────────────────────────────────────
+//  DRIVER APP SCREENS
+// ─────────────────────────────────────────────
+
+function ScreenDriverHome() {
+  const { onDuty, earnings, rides, rating } = state.driverData;
+  return `
+  <div class="screen">
+    <div id="map-container">
+      <div id="leaflet-map" style="width:100%;height:100%"></div>
+      <div class="map-overlay-top">
+        <div class="map-pill" style="flex:1;cursor:pointer" onclick="toggleDriverDuty()">
+          <div style="width:10px;height:10px;border-radius:50%;background:${onDuty?'var(--green)':'var(--red)'}"></div>
+          ${onDuty?'Disponib':'Repos'}
+        </div>
+        <div class="map-pill" onclick="navigate('driver-notifications')">🔔</div>
+      </div>
+      <div class="map-overlay-bottom">
+        <div class="drag-handle"></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+          ${[['G '+earnings,'Jodi a'],[''+rides,'Kous'],['⭐ '+rating,'Nòt']].map(([v,l])=>`
+            <div class="card" style="text-align:center;padding:12px 6px">
+              <div class="bold" style="font-size:20px;color:var(--orange)">${v}</div>
+              <div class="label" style="font-size:11px">${l}</div>
+            </div>
+          `).join('')}
+        </div>
+        <button class="btn ${onDuty?'btn-danger':'btn-green'}" onclick="toggleDriverDuty()">
+          ${onDuty?'Sispann (Mete on repos)':'Kòmanse jwenn kous →'}
+        </button>
+        ${onDuty?`<div class="label" style="text-align:center;margin-top:8px">🟢 Ap tann yon kous…</div>`:''}
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <button class="btn btn-secondary btn-sm" style="flex:1" onclick="navigate('driver-earnings')">💰 Revni</button>
+          <button class="btn btn-secondary btn-sm" style="flex:1" onclick="navigate('driver-history')">📋 Istwa</button>
+        </div>
+      </div>
+    </div>
+    ${BottomNavDriver('home')}
+  </div>`;
+}
+
+function ScreenDriverRideRequest() {
+  const d = DEMO_DRIVERS[0];
+  return `
+  <div class="screen">
+    <div id="map-container">
+      <div id="leaflet-map" style="width:100%;height:100%"></div>
+      <div class="map-overlay-bottom">
+        <div class="drag-handle"></div>
+        <div style="text-align:center;margin-bottom:4px">
+          <div class="badge badge-orange" style="font-size:15px;padding:8px 20px">📢 Nouvo demann!</div>
+        </div>
+        <div style="position:relative;margin:12px 0">
+          <div class="progress-track"><div class="progress-fill" id="accept-bar" style="width:100%;background:var(--orange)"></div></div>
+          <div style="font-size:12px;text-align:right;margin-top:4px;color:var(--text3)">15 sèk pou aksepte</div>
+        </div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="row between" style="margin-bottom:10px">
+            <div>
+              <div class="label">Pasajè</div>
+              <div class="bold" style="font-size:17px">Jean Pierre</div>
+            </div>
+            <div class="badge badge-yellow">⭐ 4.9</div>
+          </div>
+          <div class="divider"></div>
+          <div class="row" style="gap:6px;margin-bottom:8px">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--orange);flex-shrink:0"></div>
+            <div style="flex:1"><div class="label">Soti</div><div class="bold" style="font-size:14px">Sentèl, Okay</div></div>
+          </div>
+          <div class="row" style="gap:6px">
+            <div style="width:10px;height:10px;background:var(--green);flex-shrink:0"></div>
+            <div style="flex:1"><div class="label">Ale</div><div class="bold" style="font-size:14px">Lopital Imakile</div></div>
+          </div>
+          <div class="divider"></div>
+          <div class="row between">
+            <div><div class="label">Distans</div><div class="bold">4.2 km</div></div>
+            <div style="text-align:right"><div class="label">Dire</div><div class="bold">11 min</div></div>
+            <div style="text-align:right"><div class="label">Montan</div><div class="bold orange" style="font-size:20px">G 75</div></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-danger" style="flex:1" onclick="navigate('driver-home')">✗ Refize</button>
+          <button class="btn btn-green" style="flex:2" onclick="navigate('driver-onway')">✓ Aksepte →</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function ScreenDriverOnWay() {
+  return `
+  <div class="screen">
+    <div id="map-container">
+      <div id="leaflet-map" style="width:100%;height:100%"></div>
+      <div style="position:absolute;top:14px;left:14px;right:14px;z-index:999;display:flex;justify-content:space-between">
+        <div class="badge badge-orange" style="padding:8px 14px">🏍 Ale ranmase</div>
+        <div class="map-pill" onclick="navigate('driver-chat')">💬 Chat</div>
+      </div>
+      <div class="map-overlay-bottom">
+        <div class="drag-handle"></div>
+        <div class="row between" style="margin-bottom:14px">
+          <div><div class="label">Ranmase nan</div><div style="font-size:38px;font-weight:900;color:var(--orange)">2 min</div></div>
+          <div style="text-align:right">
+            <div class="bold">Jean Pierre</div>
+            <button class="btn btn-yellow btn-sm" style="margin-top:6px" onclick="showToast('Rele pasajè…')">📞 Rele</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="row" style="gap:8px"><span style="font-size:18px">📍</span><div><div class="label">Adrès ranmase</div><div class="bold">Sentèl, kwen Bergeaud</div></div></div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-ghost" style="flex:1" onclick="navigate('driver-chat')">💬 Mesaj</button>
+          <button class="btn btn-primary" style="flex:2" onclick="navigate('driver-in-ride')">Pasajè mete ✓</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function ScreenDriverInRide() {
+  return `
+  <div class="screen">
+    <div id="map-container">
+      <div id="leaflet-map" style="width:100%;height:100%"></div>
+      <div style="position:absolute;top:14px;left:14px;right:14px;z-index:999;display:flex;justify-content:space-between">
+        <div class="badge badge-green" style="padding:8px 14px">⚡ Kous an kou</div>
+        <div class="map-pill" onclick="showToast('SOS aktive!')">SOS 🚨</div>
+      </div>
+      <div class="map-overlay-bottom">
+        <div class="drag-handle"></div>
+        <div class="row between" style="margin-bottom:14px">
+          <div><div class="label">Rive nan</div><div style="font-size:38px;font-weight:900;color:var(--green)">5 min</div></div>
+          <div style="text-align:right"><div class="bold orange" style="font-size:24px">G 75</div><div class="label">Peman an atant</div></div>
+        </div>
+        <div class="progress-track" style="margin-bottom:12px"><div class="progress-fill" style="width:55%;background:var(--green)"></div></div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="row" style="gap:8px"><span style="font-size:18px">🏁</span><div><div class="label">Destinasyon</div><div class="bold">Lopital Imakile, Bd 4 Chemins</div></div></div>
+        </div>
+        <button class="btn btn-green" onclick="navigate('driver-ride-done')">✓ Kous fini — Rive</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function ScreenDriverRideDone() {
+  return `
+  <div class="screen" style="justify-content:center;padding:30px 24px">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:60px;margin-bottom:12px">🎉</div>
+      <div style="font-size:28px;font-weight:800;color:var(--green)">Kous fini!</div>
+      <div class="subtitle">Jean Pierre · 4.2 km · 11 min</div>
+    </div>
+    <div class="wallet-card" style="margin-bottom:16px">
+      <div style="position:relative;z-index:1;text-align:center">
+        <div style="font-size:13px;opacity:.85">Ajoute nan wallet ou</div>
+        <div style="font-size:52px;font-weight:900" class="mono">G 75</div>
+        <div style="font-size:13px;opacity:.75">Nouvo balans: G ${(state.driverData.earnings+75).toLocaleString()}</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="row between"><span>Kous</span><span>G 80</span></div>
+      <div class="row between"><span class="muted">Frè platfòm (10%)</span><span class="red">−G 8</span></div>
+      <div class="divider"></div>
+      <div class="row between"><span class="bold">Ou resevwa</span><span class="bold green" style="font-size:18px">G 72</span></div>
+    </div>
+    <button class="btn btn-primary" onclick="state.driverData.earnings+=72;state.driverData.rides++;navigate('driver-home')">
+      Kontinye jwenn kous →
+    </button>
+  </div>`;
+}
+
+function ScreenDriverEarnings() {
+  return `
+  <div class="screen">
+    <div class="topbar">
+      <button class="topbar-back" onclick="navigate('driver-home')">←</button>
+      <div class="topbar-title">Revni mwen</div>
+      <div></div>
+    </div>
+    <div class="scroll-area pad">
+      <div class="wallet-card" style="margin-bottom:16px">
+        <div style="position:relative;z-index:1">
+          <div style="font-size:13px;opacity:.85">Jodi a</div>
+          <div style="font-size:46px;font-weight:900" class="mono">G ${state.driverData.earnings.toLocaleString()}</div>
+          <div class="row" style="gap:16px;margin-top:8px;font-size:13px;opacity:.85">
+            <span>${state.driverData.rides} kous</span>
+            <span>⭐ ${state.driverData.rating}</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+        ${[['G 8,240','Semèn sa','↑ 12%'],['G 32,100','Mwa sa','↑ 8%']].map(([v,l,ch])=>`
+          <div class="card" style="text-align:center">
+            <div class="bold" style="font-size:22px;color:var(--orange)">${v}</div>
+            <div class="label">${l}</div>
+            <div class="green" style="font-size:12px">${ch}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="section-title">Tranzaksyon resan</div>
+      ${[['Jean Pierre','Sentèl→Lopital','14:32',72],['Marie L.','Lakou→Aeropò','09:15',288],['Bob M.','Bergeaud→Mache','08:10',45]].map(([n,r,h,a])=>`
+        <div class="txn-row">
+          <div class="txn-icon">🏍</div>
+          <div style="flex:1"><div class="bold" style="font-size:14px">${n}</div><div class="label">${r} · ${h}</div></div>
+          <div class="bold mono green">+G ${a}</div>
+        </div>
+      `).join('')}
+    </div>
+    ${BottomNavDriver('earnings')}
+  </div>`;
+}
+
+// ─────────────────────────────────────────────
+//  ADMIN DASHBOARD
+// ─────────────────────────────────────────────
+
+function ScreenAdminDashboard() {
+  const stats = [
+    { icon:'🏍', label:'Kous jodi a', value:'48', change:'+12%' },
+    { icon:'💰', label:'Revni total', value:'G 14,240', change:'+8%' },
+    { icon:'👥', label:'Itilizatè aktif', value:'312', change:'+5%' },
+    { icon:'⭐', label:'Nòt mwayèn', value:'4.8 / 5', change:'stable' },
+  ];
+  return `
+  <div class="screen">
+    <div class="topbar">
+      <div style="font-size:20px;font-weight:800"><span style="color:var(--orange)">Kay</span><span style="color:var(--yellow)">Taxi</span> <span class="label">Admin</span></div>
+      <div class="badge badge-green">● Live</div>
+      <button class="btn-icon" onclick="navigate('settings')">⚙️</button>
+    </div>
+    <div class="scroll-area pad">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+        ${stats.map(s=>`
+          <div class="card">
+            <div style="font-size:22px;margin-bottom:8px">${s.icon}</div>
+            <div class="bold" style="font-size:20px;color:var(--orange)">${s.value}</div>
+            <div class="label">${s.label}</div>
+            <div style="font-size:12px;color:var(--green);margin-top:2px">${s.change}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="section-title">Chofè aktif kounye a</div>
+      ${DEMO_DRIVERS.map(d=>`
+        <div class="card row" style="gap:12px;margin-bottom:10px">
+          <div class="avatar sm">${d.name.slice(0,2)}</div>
+          <div style="flex:1">
+            <div class="bold" style="font-size:14px">${d.name}</div>
+            <div class="label">${d.vehicle} · ${d.plate}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="badge badge-green" style="font-size:11px">Disponib</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px">⭐ ${d.rating}</div>
+          </div>
+        </div>
+      `).join('')}
+
+      <div class="section-title" style="margin-top:10px">Aksyon rapid</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        ${[['👥','Jere itilizatè'],['🏍','Jere chofè'],['🗺️','Wè kat live'],['📊','Rapò detaye']].map(([ic,lbl])=>`
+          <button class="btn btn-secondary" style="flex-direction:column;gap:6px;padding:16px" onclick="showToast('${lbl} ap vini…')">
+            <span style="font-size:28px">${ic}</span>
+            <span style="font-size:13px">${lbl}</span>
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─────────────────────────────────────────────
+//  SHARED UI COMPONENTS
+// ─────────────────────────────────────────────
+
+function BottomNav(active) {
+  const tabs = [
+    ['home','🏠','Akèy'],
+    ['history','📋','Istwa'],
+    ['wallet','💼','Wallet'],
+    ['profile','👤','Mwen'],
+  ];
+  return `
+  <div class="bottomnav">
+    ${tabs.map(([id,ic,lbl])=>`
+      <div class="nav-item ${active===id?'active':''}" onclick="navigate('${id}')">
+        <div class="nav-icon">${ic}</div>
+        <span>${lbl}</span>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function BottomNavDriver(active) {
+  const tabs = [
+    ['driver-home','🗺️','Kat'],
+    ['driver-earnings','💰','Revni'],
+    ['driver-history','📋','Istwa'],
+    ['profile','👤','Mwen'],
+  ];
+  return `
+  <div class="bottomnav">
+    ${tabs.map(([id,ic,lbl])=>`
+      <div class="nav-item ${active===id?'active':''}" onclick="navigate('${id}')">
+        <div class="nav-icon">${ic}</div>
+        <span>${lbl}</span>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+// ─────────────────────────────────────────────
+//  ACTIONS
+// ─────────────────────────────────────────────
+
+async function handleLogin() {
+  const email = document.getElementById('email-input')?.value?.trim().toLowerCase();
+  if (!email || !email.includes('@')) { showToast('Antre yon imèl valid !'); return; }
+  const btn = document.querySelector('#app .btn-primary');
+  if (btn) { btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true; }
+
+  state._loginEmail = email;
+
+  if (!supabase) {
+    navigate('otp'); startOTPTimer(); return;
+  }
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: true }
+  });
+  if (error) {
+    showToast('Erè: ' + error.message);
+    if (btn) { btn.innerHTML = 'Voye kòd OTP ✉️'; btn.disabled = false; }
+  } else {
+    navigate('otp');
+    startOTPTimer(60);
+  }
+}
+
+function startOTPTimer(secs = 60) {
+  let s = secs;
+  const iv = setInterval(() => {
+    s--;
+    const el = document.getElementById('otp-timer');
+    if (el) el.textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+    if (s <= 0) clearInterval(iv);
+  }, 1000);
+}
+
+async function resendOTP() {
+  if (!state._loginEmail) { navigate('login'); return; }
+  if (supabase) {
+    await supabase.auth.signInWithOtp({ email: state._loginEmail, options: { shouldCreateUser: true } });
+  }
+  showToast('Nouvo kòd voye ✉️');
+  startOTPTimer(60);
+}
+
+function handleOTPInput(input, idx) {
+  input.value = input.value.replace(/\D/g,'').slice(-1);
+  if (input.value) {
+    const next = document.querySelectorAll('.otp-box')[idx+1];
+    if (next) next.focus();
+  }
+  const boxes = document.querySelectorAll('.otp-box');
+  const all = [...boxes].filter(b=>b).every(b => b.value);
+  const btn = document.getElementById('verify-btn');
+  if (btn) { btn.style.opacity = all?'1':'.5'; btn.style.pointerEvents = all?'auto':'none'; }
+}
+
+async function handleOTPVerify() {
+  const boxes = document.querySelectorAll('.otp-box');
+  const token = [...boxes].map(b=>b.value).join('');
+  if (token.length < 6) { showToast('Antre 6 chif yo !'); return; }
+
+  const btn = document.getElementById('verify-btn');
+  if (btn) { btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true; }
+
+  if (!supabase) {
+    state.user = { name: state._loginEmail?.split('@')[0] || 'Itilizatè', email: state._loginEmail, role: state.role };
+    const target = state.role==='driver'?'driver-home':state.role==='admin'?'admin-dashboard':'register';
+    navigate(target); return;
+  }
+
+  const email = state._loginEmail;
+  if (!email) { navigate('login'); return; }
+
+  const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+
+  if (error) {
+    showToast('❌ Kòd la pa bon — eseye ankò');
+    if (btn) { btn.innerHTML='Verifye kòd la'; btn.disabled=false; }
+  } else if (data?.user) {
+    showToast('✓ Konekte!');
+    // onAuthStateChange will navigate
+  }
+}
+
+async function handleRegister() {
+  const name = document.getElementById('reg-name')?.value?.trim() || '';
+  if (!name) { showToast('Antre non ou !'); return; }
+  const zone = document.querySelector('.badge-orange[onclick*="chwazi"]')?.textContent?.trim() || 'Okay';
+
+  const btn = document.querySelector('#app .btn-primary');
+  if (btn) { btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true; }
+
+  const ok = await saveProfile(name, zone);
+  if (ok || !supabase) {
+    state.user = { ...state.user, name, zone, profile_complete: true };
+    showToast('Kont kreye ✓');
+    navigate('home');
+  } else {
+    showToast('Erè — eseye ankò');
+    if (btn) { btn.innerHTML='Kontinye →'; btn.disabled=false; }
+  }
+}
+
+async function startRideSearch() {
+  state.rideStatus = 'searching';
+  const vehicle = VEHICLES.find(v=>v.id===state.selectedVehicle) || VEHICLES[0];
+
+  // Create ride in Supabase
+  const ride = await createRide(vehicle.id, 'Sentèl, Okay', 'Lopital Imakile', vehicle.price);
+  if (ride) {
+    state.currentRide = { ...state.currentRide, id: ride.id, vehicle };
+    subscribeToRide(ride.id);
+  } else {
+    // Demo fallback
+    state.currentRide = { id: null, vehicle };
+  }
+  navigate('searching');
+}
+
+async function handlePayment(total) {
+  const btn = document.querySelector('#app .btn-primary');
+  if (btn) { btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true; }
+
+  const ok = await processPayment(total, state.selectedPayment);
+  if (ok) {
+    showToast('Peman konfime ✓');
+    navigate('rate-driver');
+  } else {
+    showToast('Erè peman — eseye ankò');
+    if (btn) { btn.innerHTML=`Peye G ${total}`; btn.disabled=false; }
+  }
+}
+
+async function handleTopup(amount) {
+  const btn = document.querySelector('#app .btn-primary');
+  if (btn) { btn.innerHTML = '<div class="spinner"></div>'; btn.disabled = true; }
+
+  const ok = await topupWallet(amount, 'MonCash');
+  if (ok) {
+    showToast(`G ${amount} ajoute ✓`);
+    await loadWallet(state.user?.id);
+    navigate('wallet');
+  } else {
+    showToast('Erè rechaje');
+    if (btn) { btn.innerHTML=`Rechaje G ${amount}`; btn.disabled=false; }
+  }
+}
+
+async function toggleDriverDuty() {
+  state.driverData.onDuty = !state.driverData.onDuty;
+  if (state.driverData.onDuty) {
+    showToast('Ou disponib kounye a 🟢');
+    startDriverGPS();
+    if (supabase && state.user?.id)
+      await supabase.from('driver_profiles')
+        .upsert({ user_id: state.user.id, is_online: true }, { onConflict: 'user_id' });
+    // Simulate incoming request after 4s in demo
+    if (!supabase || CONFIG.DEMO_MODE) {
+      setTimeout(() => {
+        if (state.driverData.onDuty && state.screen==='driver-home') {
+          navigate('driver-ride-request');
+        }
+      }, 4000);
+    } else {
+      // Subscribe to new ride requests for this driver
+      supabase.channel('new-rides')
+        .on('postgres_changes', { event:'INSERT', schema:'public', table:'rides', filter:'status=eq.searching' },
+          async (payload) => {
+            if (state.driverData.onDuty && state.screen==='driver-home') {
+              state.driverData.pendingRide = payload.new;
+              navigate('driver-ride-request');
+            }
+          })
+        .subscribe();
+    }
+  } else {
+    showToast('Mete on repos 🔴');
+    stopDriverGPS();
+    if (supabase && state.user?.id)
+      await supabase.from('driver_profiles')
+        .upsert({ user_id: state.user.id, is_online: false }, { onConflict: 'user_id' });
+  }
+  render();
+}
+
+async function handleRatingSubmit() {
+  const rating = ScreenRateDriver._rating || 5;
+  const tipIdx = ScreenRateDriver._tip || 0;
+  const tips = [0,10,20,50,0];
+  const tip = tips[tipIdx] || 0;
+  const comment = document.querySelector('textarea')?.value || '';
+
+  await submitRating(state.currentRide?.id, rating, tip, comment);
+  navigate('payment-done');
+}
+
+function showNegotiateModal() {
+  showToast('Negosyasyon nan vèsyon 2 !');
+}
+
+function saveSupabaseConfig() {
+  const url = document.getElementById('sb-url')?.value;
+  const key = document.getElementById('sb-key')?.value;
+  if (url && key) {
+    CONFIG.SUPABASE_URL = url;
+    CONFIG.SUPABASE_ANON_KEY = key;
+    CONFIG.DEMO_MODE = false;
+    showToast('Konekte ✓ — rechaje paj la');
+    setTimeout(() => location.reload(), 1200);
+  } else {
+    showToast('Antre URL ak Anon Key !');
+  }
+}
+
+// ─────────────────────────────────────────────
+//  MAP INIT
+// ─────────────────────────────────────────────
+
+function initMap(containerId = 'leaflet-map') {
+  const el = document.getElementById(containerId);
+  if (!el || el._map_init) return;
+  el._map_init = true;
+
+  const map = L.map(el, {
+    zoomControl: false,
+    attributionControl: false,
+  }).setView(CONFIG.MAP_CENTER, CONFIG.MAP_ZOOM);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap',
+    className: 'map-tiles',
+  }).addTo(map);
+
+  // Dark filter on tiles
+  el.style.filter = 'brightness(0.65) contrast(1.1) saturate(0.8)';
+
+  // User marker
+  const userIcon = L.divIcon({
+    html: '<div style="width:18px;height:18px;border-radius:50%;background:#ff7733;border:3px solid #fff;box-shadow:0 2px 8px rgba(255,119,51,.6)"></div>',
+    className: '', iconAnchor: [9,9]
+  });
+  L.marker(CONFIG.MAP_CENTER, { icon: userIcon }).addTo(map);
+
+  // Driver markers
+  const driverIcon = L.divIcon({
+    html: '<div style="width:32px;height:32px;border-radius:50%;background:#ffd23f;border:2px solid #14110d;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,.4)">🏍</div>',
+    className: '', iconAnchor: [16,16]
+  });
+  DEMO_DRIVERS.slice(0,3).forEach(d => {
+    L.marker([d.lat, d.lng], { icon: driverIcon }).addTo(map)
+      .bindPopup(`<b>${d.name}</b><br/>${d.vehicle}`);
+  });
+
+  // Destination marker (for ride screens)
+  if (['vehicle-select','driver-found','ride-inprogress','ride-done'].includes(state.screen)) {
+    const destIcon = L.divIcon({
+      html: '<div style="width:18px;height:18px;border-radius:50%;background:#22c55e;border:3px solid #fff;box-shadow:0 2px 8px rgba(34,197,94,.6)"></div>',
+      className: '', iconAnchor: [9,9]
+    });
+    L.marker([18.1965, -73.7460], { icon: destIcon }).addTo(map);
+
+    // Route line
+    L.polyline([CONFIG.MAP_CENTER, [18.1965, -73.7460]], {
+      color: '#ff7733', weight: 3, dashArray: '8 6', opacity: 0.8
+    }).addTo(map);
+
+    map.fitBounds([[CONFIG.MAP_CENTER, [18.1965, -73.7460]]], { padding: [40,40] });
+  }
+
+  state.map = map;
+
+  // Animate driver positions
+  setInterval(() => {
+    DEMO_DRIVERS.forEach(d => {
+      d.lat += (Math.random() - 0.5) * 0.0002;
+      d.lng += (Math.random() - 0.5) * 0.0002;
+    });
+  }, 2000);
+}
+
+// ─────────────────────────────────────────────
+//  RENDER ENGINE
+// ─────────────────────────────────────────────
+
+const SCREENS = {
+  splash: ScreenSplash,
+  onboarding: ScreenOnboarding,
+  login: ScreenLogin,
+  otp: ScreenOTP,
+  register: ScreenRegister,
+  home: ScreenHome,
+  'vehicle-select': ScreenVehicleSelect,
+  searching: ScreenSearching,
+  'driver-found': ScreenDriverFound,
+  'ride-inprogress': ScreenRideInProgress,
+  'ride-done': ScreenRideDone,
+  payment: ScreenPayment,
+  'payment-done': ScreenPaymentDone,
+  'rate-driver': ScreenRateDriver,
+  chat: ScreenChat,
+  wallet: ScreenWallet,
+  'wallet-topup': ScreenWalletTopup,
+  history: ScreenHistory,
+  profile: ScreenProfile,
+  notifications: ScreenNotifications,
+  settings: ScreenSettings,
+  'driver-home': ScreenDriverHome,
+  'driver-ride-request': ScreenDriverRideRequest,
+  'driver-onway': ScreenDriverOnWay,
+  'driver-in-ride': ScreenDriverInRide,
+  'driver-ride-done': ScreenDriverRideDone,
+  'driver-earnings': ScreenDriverEarnings,
+  'driver-history': () => `<div class="screen"><div class="topbar"><button class="topbar-back" onclick="navigate('driver-home')">←</button><div class="topbar-title">Istwa kous</div></div><div class="pad scroll-area"><p class="muted" style="text-align:center;margin-top:40px">Kous yo ap chaje…</p></div></div>`,
+  'driver-chat': () => { state.currentRide = state.currentRide || { driver: DEMO_DRIVERS[0] }; return ScreenChat(); },
+  'driver-notifications': ScreenNotifications,
+  'admin-dashboard': ScreenAdminDashboard,
+};
+
+function render() {
+  const app = document.getElementById('app');
+  const screenFn = SCREENS[state.screen];
+  if (!screenFn) { navigate('home'); return; }
+
+  app.innerHTML = screenFn();
+
+  // Show connection status
+  if (!supabase && !['splash','onboarding','login','otp'].includes(state.screen)) {
+    const banner = document.createElement('div');
+    banner.id = 'supabase-banner';
+    banner.innerHTML = '⏳ Koneksyon Supabase ap chaje…';
+    app.prepend(banner);
+  }
+
+  // Init map if needed
+  setTimeout(() => {
+    if (document.getElementById('leaflet-map')) initMap('leaflet-map');
+    if (document.getElementById('leaflet-map-mini')) initMap('leaflet-map-mini');
+  }, 60);
+}
+
+// ─────────────────────────────────────────────
+//  BOOT
+// ─────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', () => {
+  initSupabase();
+  render();
+});
+</script>
+</body>
+</html>
